@@ -1,0 +1,66 @@
+import './App.css'
+import appLogo from './images/app-logo.png'
+
+const userIsRegistered = true;
+
+function App() {
+  return (
+    <main className='login-page'>
+      <section className='brand-panel' aria-label='Myrna Payday Prosperity'>
+        <img className='app-logo' src={appLogo} alt='Myrna Payday Prosperity' />
+      </section>
+
+      <section
+        className='login-panel'
+        aria-labelledby={userIsRegistered ? 'login-title' : 'registration-title'}
+      >
+
+        <div className='app-name'>
+          <h1>MYRNA</h1>
+          <h2>Payday Prosperity</h2>
+        </div>
+
+        {userIsRegistered ? (
+          <form className='registration-box'>
+            <h1 id='login-title'>Log in</h1>
+
+            <label className='login-field' htmlFor='username'>
+              Username
+              <input id='username' name='username' type='text' placeholder='Username' autoComplete='username' />
+            </label>
+
+            <label className='login-field' htmlFor='password'>
+              Password
+              <input id='password' name='password' type='password' placeholder='Password' autoComplete='current-password' />
+            </label>
+
+            <button className='logIn' type='button'>Log in</button>
+          </form>
+        ) : (
+          <form className='registration-box'>
+            <h1 id='registration-title'>Create account</h1>
+
+            <label className='login-field' htmlFor='register-username'>
+              Username
+              <input id='register-username' name='username' type='text' placeholder='Username' autoComplete='username' />
+            </label>
+
+            <label className='login-field' htmlFor='register-password'>
+              Password
+              <input id='register-password' name='password' type='password' placeholder='Password' autoComplete='new-password' />
+            </label>
+
+            <label className='login-field' htmlFor='confirm-password'>
+              Confirm password
+              <input id='confirm-password' name='confirmPassword' type='password' placeholder='Confirm password' autoComplete='new-password' />
+            </label>
+
+            <button className='logIn' type='button'>Register</button>
+          </form>
+        )}
+      </section>
+    </main>
+  )
+}
+
+export default App
