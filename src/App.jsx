@@ -1,12 +1,38 @@
 import './App.css'
 import appLogo from './images/app-logo.png'
+import { useState } from 'react'
 
 const userIsRegistered = true;
 
 function App() {
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  function handleRegister(e) {
+    e.preventDefault();
+
+    console.log("Submitted registration form");
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+
+    console.log(username , password);
+    
+  }
+
+  function handleUsername(e) {
+    setUsername(e.target.value);
+  }
+
+  function handlePassword(e) {
+    setPassword(e.target.value);
+  }
+
   return (
     <main className='login-page'>
-      <section className='brand-panel' aria-label='Myrna Payday Prosperity'>
+      <section class  Name='brand-panel' aria-label='Myrna Payday Prosperity'>
         <img className='app-logo' src={appLogo} alt='Myrna Payday Prosperity' />
       </section>
 
@@ -21,23 +47,23 @@ function App() {
         </div>
 
         {userIsRegistered ? (
-          <form className='registration-box'>
+          <form className='registration-box' onSubmit={handleLogin}>
             <h1 id='login-title'>Log in</h1>
 
             <label className='login-field' htmlFor='username'>
               Username
-              <input id='username' name='username' type='text' placeholder='Username' autoComplete='username' />
+              <input onChange={handleUsername} id='username' name='username' type='text' placeholder='Username' autoComplete='username' />
             </label>
 
             <label className='login-field' htmlFor='password'>
               Password
-              <input id='password' name='password' type='password' placeholder='Password' autoComplete='current-password' />
+              <input onChange={handlePassword} id='password' name='password' type='password' placeholder='Password' autoComplete='current-password' />
             </label>
 
-            <button className='logIn' type='button'>Log in</button>
+            <button className='logIn' type='submit'>Log in</button>
           </form>
         ) : (
-          <form className='registration-box'>
+          <form className='registration-box' onSubmit={handleRegister}>
             <h1 id='registration-title'>Create account</h1>
 
             <label className='login-field' htmlFor='register-username'>
@@ -55,7 +81,7 @@ function App() {
               <input id='confirm-password' name='confirmPassword' type='password' placeholder='Confirm password' autoComplete='new-password' />
             </label>
 
-            <button className='logIn' type='button'>Register</button>
+            <button className='logIn' type='submit'>Register</button>
           </form>
         )}
       </section>
