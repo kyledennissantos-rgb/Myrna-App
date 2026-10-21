@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import appLogo from './images/app-logo.png'
 import { supabase } from './supabase'
+import Dashboard from './Dashboard'
 
 function App() {
-  const [isLogin, setIsLogin] = useState(false)
+  const [authView, setAuthView] = useState('signup')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -32,8 +33,13 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    } = supabase.auth.onAuthStateChange((event, currentSession) => {
       setSession(currentSession)
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setAuthView('reset-password')
+        setMessage('')
+      }
     })
 
     return () => {
@@ -46,7 +52,10 @@ function App() {
     event.preventDefault()
     setMessage('')
 
-    if (!isLogin && password !== confirmPassword) {
+    if (
+      (authView === 'signup' || authView === 'reset-password') &&
+      password !== confirmPassword
+    ) {
       setMessage('Passwords do not match.')
       return
     }
@@ -54,7 +63,22 @@ function App() {
     setIsLoading(true)
 
     try {
-      if (isLogin) {
+      if (authView === 'forgot-password') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin,
+        })
+
+        if (error) throw error
+        setMessage('If an account exists for that email, a password reset link has been sent.')
+      } else if (authView === 'reset-password') {
+        const { error } = await supabase.auth.updateUser({ password })
+
+        if (error) throw error
+        setPassword('')
+        setConfirmPassword('')
+        setAuthView('login')
+        setMessage('Your password has been updated.')
+      } else if (authView === 'login') {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -82,6 +106,13 @@ function App() {
     }
   }
 
+  function changeAuthView(nextView) {
+    setAuthView(nextView)
+    setMessage('')
+    setPassword('')
+    setConfirmPassword('')
+  }
+
   async function handleSignOut() {
     setMessage('')
     setIsLoading(true)
@@ -97,12 +128,23 @@ function App() {
     }
   }
 
-  function switchMode() {
-    setIsLogin((currentMode) => !currentMode)
-    setMessage('')
-    setPassword('')
-    setConfirmPassword('')
+  if (session && authView !== 'reset-password') {
+    return (
+      <Dashboard
+        user={session.user}
+        onSignOut={handleSignOut}
+        isLoading={isLoading}
+      />
+    )
   }
+
+  const title = authView === 'login'
+    ? 'login-title'
+    : authView === 'forgot-password'
+      ? 'forgot-password-title'
+      : authView === 'reset-password'
+        ? 'reset-password-title'
+        : 'registration-title'
 
   return (
     <main className='login-page'>
@@ -112,56 +154,57 @@ function App() {
 
       <section
         className='login-panel'
-        aria-labelledby={session ? 'welcome-title' : isLogin ? 'login-title' : 'registration-title'}
+        aria-labelledby={title}
       >
         <div className='app-name'>
           <h1>MYRNA</h1>
           <h2>Payday Prosperity</h2>
         </div>
 
-        {session ? (
-          <div className='registration-box'>
-            <h1 id='welcome-title'>Welcome</h1>
-            <p>You are signed in as {session.user.email}.</p>
-            <button className='logIn' type='button' onClick={handleSignOut} disabled={isLoading}>
-              {isLoading ? 'Signing out...' : 'Sign out'}
-            </button>
-          </div>
-        ) : (
-          <form className='registration-box' onSubmit={handleSubmit}>
-            <h1 id={isLogin ? 'login-title' : 'registration-title'}>
-              {isLogin ? 'Log in' : 'Create account'}
+        <form className='registration-box' onSubmit={handleSubmit}>
+            <h1 id={title}>
+              {authView === 'login'
+                ? 'Log in'
+                : authView === 'forgot-password'
+                  ? 'Forgot password'
+                  : authView === 'reset-password'
+                    ? 'Choose a new password'
+                    : 'Create account'}
             </h1>
 
-            <label className='login-field' htmlFor='email'>
-              Email
-              <input
-                id='email'
-                name='email'
-                type='email'
-                placeholder='you@example.com'
-                autoComplete='email'
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </label>
+            {authView !== 'reset-password' && (
+              <label className='login-field' htmlFor='email'>
+                Email
+                <input
+                  id='email'
+                  name='email'
+                  type='email'
+                  placeholder='you@example.com'
+                  autoComplete='email'
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+              </label>
+            )}
 
-            <label className='login-field' htmlFor='password'>
-              Password
-              <input
-                id='password'
-                name='password'
-                type='password'
-                placeholder='Password'
-                autoComplete={isLogin ? 'current-password' : 'new-password'}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
-            </label>
+            {authView !== 'forgot-password' && (
+              <label className='login-field' htmlFor='password'>
+                {authView === 'reset-password' ? 'New password' : 'Password'}
+                <input
+                  id='password'
+                  name='password'
+                  type='password'
+                  placeholder={authView === 'reset-password' ? 'New password' : 'Password'}
+                  autoComplete={authView === 'login' ? 'current-password' : 'new-password'}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </label>
+            )}
 
-            {!isLogin && (
+            {(authView === 'signup' || authView === 'reset-password') && (
               <label className='login-field' htmlFor='confirm-password'>
                 Confirm password
                 <input
@@ -180,15 +223,50 @@ function App() {
             {message && <p className='auth-message' role='status'>{message}</p>}
 
             <button className='logIn' type='submit' disabled={isLoading}>
-              {isLoading ? 'Please wait...' : isLogin ? 'Log in' : 'Register'}
+              {isLoading
+                ? 'Please wait...'
+                : authView === 'login'
+                  ? 'Log in'
+                  : authView === 'forgot-password'
+                    ? 'Send reset link'
+                    : authView === 'reset-password'
+                      ? 'Update password'
+                      : 'Register'}
             </button>
-            <button className='auth-switch' type='button' onClick={switchMode} disabled={isLoading}>
-              {isLogin ? 'Need an account? Register' : 'Already have an account? Log in'}
-            </button>
-          </form>
-        )}
 
-        {session && message && <p className='auth-message' role='status'>{message}</p>}
+            {authView === 'login' && (
+              <button
+                className='auth-switch'
+                type='button'
+                onClick={() => changeAuthView('forgot-password')}
+                disabled={isLoading}
+              >
+                Forgot password?
+              </button>
+            )}
+
+            {(authView === 'signup' || authView === 'login') && (
+              <button
+                className='auth-switch'
+                type='button'
+                onClick={() => changeAuthView(authView === 'login' ? 'signup' : 'login')}
+                disabled={isLoading}
+              >
+                {authView === 'login' ? 'Need an account? Register' : 'Already have an account? Log in'}
+              </button>
+            )}
+
+            {(authView === 'forgot-password' || authView === 'reset-password') && (
+              <button
+                className='auth-switch'
+                type='button'
+                onClick={() => changeAuthView('login')}
+                disabled={isLoading}
+              >
+                Back to log in
+              </button>
+            )}
+        </form>
       </section>
     </main>
   )
