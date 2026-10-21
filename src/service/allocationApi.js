@@ -1,5 +1,11 @@
+const apiBaseUrl = import.meta.env.VITE_API_URL || ''
+
 async function request(path, accessToken, options = {}) {
-  const response = await fetch(path, {
+  if (import.meta.env.PROD && !apiBaseUrl) {
+    throw new Error('The allocation API is not configured for this published website yet.')
+  }
+
+  const response = await fetch(`${apiBaseUrl}${path}`, {
     ...options,
     headers: {
       Authorization: `Bearer ${accessToken}`,
