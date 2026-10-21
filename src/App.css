@@ -116,6 +116,31 @@ body {
     background: #124e5d;
 }
 
+.logIn:disabled,
+.auth-switch:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.auth-message {
+    margin: 0;
+    color: #273438;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.auth-switch {
+    border: 0;
+    background: transparent;
+    color: #176071;
+    font: inherit;
+    cursor: pointer;
+}
+
+.auth-switch:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 640px) {
     .login-page {
         grid-template-columns: 1fr;
