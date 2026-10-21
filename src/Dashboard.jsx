@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import Computation from './Computation'
+import appLogo from './images/app-logo.png'
 
-function Dashboard({ user, onSignOut, isLoading }) {
+function Dashboard({ user, accessToken, onSignOut, isLoading }) {
   // Track whether the profile menu is open and which dashboard section is selected.
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [activePage, setActivePage] = useState('dashboard')
@@ -16,9 +17,12 @@ function Dashboard({ user, onSignOut, isLoading }) {
     <main className='dashboard-page'>
       {/* The header contains the app name and the profile actions menu. */}
       <header className='dashboard-header'>
-        <div>
-          <h1>Myrna</h1>
-          <p>Payday Prosperity</p>
+        <div className='dashboard-brand'>
+          <img src={appLogo} alt='' />
+          <div>
+            <h1>Myrna</h1>
+            <p>Payday Prosperity</p>
+          </div>
         </div>
         <div className='profile-menu'>
           <button
@@ -75,11 +79,14 @@ function Dashboard({ user, onSignOut, isLoading }) {
       )}
 
       {activePage === 'computation' ? (
-        <Computation />
+        <Computation user={user} accessToken={accessToken} />
       ) : (
         <>
           {/* Render different content according to the selected dashboard section. */}
-          <section className='dashboard-content' aria-labelledby='dashboard-title'>
+          <section
+            className={`dashboard-content ${activePage === 'dashboard' ? 'dashboard-home' : 'dashboard-subpage'}`}
+            aria-labelledby='dashboard-title'
+          >
             <h2 id='dashboard-title'>
               {activePage === 'profile'
                 ? 'Profile'
@@ -93,21 +100,25 @@ function Dashboard({ user, onSignOut, isLoading }) {
               <p>Account settings will appear here.</p>
             ) : (
               <>
-                <p>You are signed in as {user.email}.</p>
-                <p>Your Myrna dashboard starts here.</p>
+                <p className='dashboard-greeting'>Your money, with a plan.</p>
+                <p>You are signed in as {user.email}. Start by setting up your salary and expenses.</p>
               </>
             )}
           </section>
 
           {activePage === 'dashboard' && (
             <section className='getStarted'>
-              <h2>Want to start?</h2>
+              <div>
+                <span className='section-eyebrow'>YOUR NEXT STEP</span>
+                <h2>Give every peso a purpose.</h2>
+                <p>Build a clear picture of your take-home pay and monthly expenses.</p>
+              </div>
               <button
                 className='logIn'
                 type='button'
                 onClick={() => setActivePage('computation')}
               >
-                Start Allocation
+                Start Allocation <span aria-hidden='true'>→</span>
               </button>
             </section>
           )}

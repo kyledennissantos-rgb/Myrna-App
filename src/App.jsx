@@ -132,6 +132,7 @@ function App() {
     return (
       <Dashboard
         user={session.user}
+        accessToken={session.access_token}
         onSignOut={handleSignOut}
         isLoading={isLoading}
       />
