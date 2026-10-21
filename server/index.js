@@ -20,6 +20,13 @@ if (missingEnvironmentVariables.length > 0) {
 }
 
 const app = express()
+const allowedOrigins = (
+  process.env.ALLOWED_ORIGINS ||
+  'http://localhost:5173,http://127.0.0.1:5173'
+)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 const mongoClient = new MongoClient(process.env.MONGODB_URI)
 const database = createClient(
   process.env.VITE_SUPABASE_URL,
@@ -34,6 +41,28 @@ const database = createClient(
 )
 
 app.disable('x-powered-by')
+app.use((req, res, next) => {
+  const origin = req.get('origin')
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+  }
+
+  if (req.method === 'OPTIONS') {
+    if (!origin || !allowedOrigins.includes(origin)) {
+      res.status(403).end()
+      return
+    }
+
+    res.status(204).end()
+    return
+  }
+
+  next()
+})
 app.use(express.json({ limit: '32kb' }))
 
 async function requireUser(req, res, next) {
