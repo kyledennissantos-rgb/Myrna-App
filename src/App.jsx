@@ -32,7 +32,7 @@ function App() {
 
   return (
     <main className='login-page'>
-      <section class  Name='brand-panel' aria-label='Myrna Payday Prosperity'>
+      <section className='brand-panel' aria-label='Myrna Payday Prosperity'>
         <img className='app-logo' src={appLogo} alt='Myrna Payday Prosperity' />
       </section>
 
